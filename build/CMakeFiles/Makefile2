@@ -55,12 +55,14 @@ CMAKE_BINARY_DIR = /root/catkin_ws/build
 # The main recursive "all" target.
 all: gtest/all
 all: beginner_tutorials/all
+all: fusion/all
 
 .PHONY : all
 
 # The main recursive "preinstall" target.
 preinstall: gtest/preinstall
 preinstall: beginner_tutorials/preinstall
+preinstall: fusion/preinstall
 
 .PHONY : preinstall
 
@@ -72,6 +74,7 @@ clean: CMakeFiles/tests.dir/clean
 clean: CMakeFiles/download_extra_data.dir/clean
 clean: gtest/clean
 clean: beginner_tutorials/clean
+clean: fusion/clean
 
 .PHONY : clean
 
@@ -106,6 +109,24 @@ beginner_tutorials/clean: beginner_tutorials/CMakeFiles/roscpp_generate_messages
 beginner_tutorials/clean: beginner_tutorials/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean
 
 .PHONY : beginner_tutorials/clean
+
+#=============================================================================
+# Directory level rules for directory fusion
+
+# Recursive "all" directory target.
+fusion/all:
+
+.PHONY : fusion/all
+
+# Recursive "preinstall" directory target.
+fusion/preinstall:
+
+.PHONY : fusion/preinstall
+
+# Recursive "clean" directory target.
+fusion/clean:
+
+.PHONY : fusion/clean
 
 #=============================================================================
 # Directory level rules for directory gtest

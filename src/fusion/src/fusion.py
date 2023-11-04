@@ -18,11 +18,17 @@ class Fusion:
         rospy.Subscriber('/gt_odom', Odometry, self.gtCallback)
         rospy.on_shutdown(self.shutdown)
         self.posePub = rospy.Publisher('/pred', Odometry, queue_size = 10)
-        self.EKF = None
+        self.EKF = ExtendedKalmanFilter()
         
         self.gt_list = [[], []]
         self.est_list = [[], []]
         self.initial = False
+
+        self.last_odom_x = 0
+        self.last_odom_y = 0
+        self.last_odom_yaw = 0
+        self.last_gps_x = 0
+        self.last_gps_y = 0
 
     def shutdown(self):
         print("shuting down fusion.py")
@@ -32,23 +38,18 @@ class Fusion:
         predPose = Odometry()
         predPose.header.frame_id = 'origin'
         # change to the state x and state y from EKF
-        predPose.pose.pose.position.x = ???
-        predPose.pose.pose.position.y = ???
+        predPose.pose.pose.position.x = self.EKF.pose[0]
+        predPose.pose.pose.position.y = self.EKF.pose[1]
         
         # Change to the state yaw from EKF
-        quaternion = quaternion_from_euler(0, 0, ???)
+        quaternion = quaternion_from_euler(0, 0, self.EKF.pose[2])
         predPose.pose.pose.orientation.x = quaternion[0]
         predPose.pose.pose.orientation.y = quaternion[1]
         predPose.pose.pose.orientation.z = quaternion[2]
         predPose.pose.pose.orientation.w = quaternion[3]
         
-        # Change to the covariance matrix of [x, y, yaw] from EKF
-        predPose.pose.covariance = [???, ???, 0, 0, 0, ???,
-                                    ???, ???, 0, 0, 0, ???,
-                                    0, 0, 0, 0, 0, 0,
-                                    0, 0, 0, 0, 0, 0,
-                                    0, 0, 0, 0, 0, 0,
-                                    ???, ???, 0, 0, 0, ???]
+        # # Change to the covariance matrix of [x, y, yaw] from EKF
+        predPose.pose.covariance = tuple(self.EKF.S.ravel().tolist())
                                     
         self.posePub.publish(predPose)
     
@@ -72,19 +73,32 @@ class Fusion:
         #     Calculate transformation matrix between 2 odometry data
         #         -> transformation = last_odom_pose^-1 * current_odom_pose
         #     etc.
-        control = ???
-        
+        vx = odom_x - self.last_odom_x
+        vy = odom_y - self.last_odom_y
+        vyaw = odom_yaw - self.last_odom_yaw
+        control = np.zeros(3)
+        control[0] = vx
+        control[1] = vy
+        control[2] = vyaw
+
         if not self.initial:
             self.initial = True
             self.EKF = ExtendedKalmanFilter(odom_x, odom_y, odom_yaw)
         else:
             # Update error covriance
-            self.EKF.R = ???
-            self.EKF.predict_EKF(u = control)
+            # self.EKF.R = [[odom_covariance[0,0],0,0]
+            #               [0,odom_covariance[1,1],0]
+            #               [0,0,odom_covariance[2,2]]]
+            self.EKF.predict(u = control)
+
+        self.last_odom_x = odom_x
+        self.last_odom_y = odom_y
+        self.last_odom_yaw = odom_yaw
 
         self.predictPublish()
         
     def gpsCallback(self, data):
+
         gps_x = data.pose.pose.position.x
         gps_y = data.pose.pose.position.y
         gps_covariance = np.array(data.pose.covariance).reshape(6, 6)
@@ -94,16 +108,22 @@ class Fusion:
         #     Use GPS directly
         #     Find a approximate yaw
         #     etc.
-        measurement = ???
+        gps_approx_yaw = atan2[gps_y - self.last_gps_y, gps_x - self.last_gps_x]
+        measurement = [gps_x,gps_y,gps_approx_yaw]
         
         if not self.initial:
             self.initial = ExtendedKalmanFilter(gps_x, gps_y)
             self.initial = True
         else:
             # Update error covriance
-            self.EKF.Q = ???
+            self.EKF.Q = [[gps_covariance[0,0],0,0]
+                          [0,gps_covariance[1,1],0]
+                          [0,0,gps_covariance[2,2]]]
             self.EKF.update(z = measurement)
-            
+
+        self.last_gps_x = gps_x
+        self.last_gps_y = gps_y
+
         self.predictPublish()
         return
     
@@ -112,8 +132,8 @@ class Fusion:
         self.gt_list[1].append(data.pose.pose.position.y)
         if self.EKF is not None:
             # Change to the state x and state y from EKF
-            self.est_list[0].append(???) 
-            self.est_list[1].append(???)
+            self.est_list[0].append(self.EKF.pose[0]) 
+            self.est_list[1].append(self.EKF.pose[1])
         return
 
     def plot_path(self):
