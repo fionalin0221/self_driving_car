@@ -407,6 +407,12 @@ catkin_DIR:PATH=/opt/ros/noetic/share/catkin/cmake
 cpp_common_DIR:PATH=/opt/ros/noetic/share/cpp_common/cmake
 
 //Value Computed by CMake
+fusion_BINARY_DIR:STATIC=/root/catkin_ws/build/fusion
+
+//Value Computed by CMake
+fusion_SOURCE_DIR:STATIC=/root/catkin_ws/src/fusion
+
+//Value Computed by CMake
 gmock_BINARY_DIR:STATIC=/root/catkin_ws/build/gtest/googlemock
 
 //Dependencies for the target
@@ -633,7 +639,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=5
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=6
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

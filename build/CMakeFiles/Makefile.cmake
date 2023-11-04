@@ -100,9 +100,13 @@ set(CMAKE_MAKEFILE_DEPENDS
   "catkin/catkin_generated/version/package.cmake"
   "catkin_generated/installspace/_setup_util.py"
   "catkin_generated/order_packages.cmake"
+  "fusion/catkin_generated/ordered_paths.cmake"
+  "fusion/catkin_generated/package.cmake"
   "/root/catkin_ws/src/CMakeLists.txt"
   "/root/catkin_ws/src/beginner_tutorials/CMakeLists.txt"
   "/root/catkin_ws/src/beginner_tutorials/package.xml"
+  "/root/catkin_ws/src/fusion/CMakeLists.txt"
+  "/root/catkin_ws/src/fusion/package.xml"
   "/usr/share/cmake-3.16/Modules/CMakeCInformation.cmake"
   "/usr/share/cmake-3.16/Modules/CMakeCXXInformation.cmake"
   "/usr/share/cmake-3.16/Modules/CMakeCheckCompilerFlagCommonPatterns.cmake"
@@ -180,6 +184,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
   "gtest/googlemock/CMakeFiles/CMakeDirectoryInformation.cmake"
   "gtest/googletest/CMakeFiles/CMakeDirectoryInformation.cmake"
   "beginner_tutorials/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "fusion/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
