@@ -9,6 +9,7 @@ Panels:
         - /PointCloud21
         - /Odometry1/Covariance1
         - /Odometry1/Covariance1/Position1
+        - /Odometry2
         - /Odometry2/Shape1
         - /Odometry2/Covariance1
         - /Odometry2/Covariance1/Position1
@@ -162,7 +163,7 @@ Visualization Manager:
           Frame: Local
           Offset: 1
           Scale: 1
-          Value: false
+          Value: true
         Position:
           Alpha: 0.10000000149011612
           Color: 252; 233; 79
@@ -259,7 +260,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 15.015939712524414
+      Distance: 13.861989974975586
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -267,17 +268,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -2.6870458126068115
-        Y: -1.3812532424926758
-        Z: 0.8018597364425659
+        X: -0.8753433227539062
+        Y: -0.5912870764732361
+        Z: 1.2319214344024658
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4697967767715454
+      Pitch: 1.5697963237762451
       Target Frame: car
-      Yaw: 4.07816219329834
+      Yaw: 2.8272831439971924
     Saved: ~
 Window Geometry:
   Displays:

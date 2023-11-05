@@ -4,8 +4,8 @@ import rospy
 import os
 import numpy as np
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
-from geometry_msgs.msg import PoseWithCovarianceStamped as Pose
-from nav_msgs.msg import Odometry
+from geometry_msgs.msg import PoseWithCovarianceStamped as Pose #message(形狀類)
+from nav_msgs.msg import Odometry #message(導航類)
 from math import cos, sin, atan2, sqrt
 from matplotlib import pyplot as plt
 
@@ -13,11 +13,11 @@ from EKF import ExtendedKalmanFilter
 
 class Fusion:
     def __init__(self):
-        rospy.Subscriber('/gps', Pose, self.gpsCallback)
+        rospy.Subscriber('/gps', Pose, self.gpsCallback) #訂閱topic(topic, message type,callback function)
         rospy.Subscriber('/radar_odometry', Odometry, self.odometryCallback)
         rospy.Subscriber('/gt_odom', Odometry, self.gtCallback)
         rospy.on_shutdown(self.shutdown)
-        self.posePub = rospy.Publisher('/pred', Odometry, queue_size = 10)
+        self.posePub = rospy.Publisher('/pred', Odometry, queue_size = 10) #發布topic(topic, message type, 發不完(發太慢)的要丟掉
         self.EKF = ExtendedKalmanFilter()
         
         self.gt_list = [[], []]
@@ -48,12 +48,18 @@ class Fusion:
         predPose.pose.pose.orientation.z = quaternion[2]
         predPose.pose.pose.orientation.w = quaternion[3]
         
-        # # Change to the covariance matrix of [x, y, yaw] from EKF
-        predPose.pose.covariance = tuple(self.EKF.S.ravel().tolist())
+        # Change to the covariance matrix of [x, y, yaw] from EKF
+        predPose.pose.covariance = \
+        [self.EKF.S[0,0],self.EKF.S[0,1],0,0,0,self.EKF.S[0,2], \
+         self.EKF.S[1,0],self.EKF.S[1,1],0,0,0,self.EKF.S[1,2], \
+         0,0,0,0,0,0,                                           \
+         0,0,0,0,0,0,                                           \
+         0,0,0,0,0,0,                                           \
+         self.EKF.S[2,0],self.EKF.S[2,1],0,0,0,self.EKF.S[2,2]]
                                     
-        self.posePub.publish(predPose)
+        self.posePub.publish(predPose) #宣告中的變數.publish->發布topic
     
-    def odometryCallback(self, data):
+    def odometryCallback(self, data): #有發布odem就會跳入此callback, 通常會存下資料與計算、做事(ex:predict、publish)
         odom_x = data.pose.pose.position.x
         odom_y = data.pose.pose.position.y
         odom_quaternion = [
@@ -76,18 +82,16 @@ class Fusion:
         vx = odom_x - self.last_odom_x
         vy = odom_y - self.last_odom_y
         vyaw = odom_yaw - self.last_odom_yaw
-        control = np.zeros(3)
-        control[0] = vx
-        control[1] = vy
-        control[2] = vyaw
+        delta_x = sqrt(vx**2 + vy**2)
+        control = np.array([delta_x,0,vyaw])
 
         if not self.initial:
             self.initial = True
-            self.EKF = ExtendedKalmanFilter(odom_x, odom_y, odom_yaw)
+            self.EKF.pose = np.array([0,0,0])
         else:
             # Update error covriance
-            # self.EKF.R = [[odom_covariance[0,0],0,0]
-            #               [0,odom_covariance[1,1],0]
+            # self.EKF.R = [[odom_covariance[0,0],0,0],
+            #               [0,odom_covariance[1,1],0],
             #               [0,0,odom_covariance[2,2]]]
             self.EKF.predict(u = control)
 
@@ -98,7 +102,6 @@ class Fusion:
         self.predictPublish()
         
     def gpsCallback(self, data):
-
         gps_x = data.pose.pose.position.x
         gps_y = data.pose.pose.position.y
         gps_covariance = np.array(data.pose.covariance).reshape(6, 6)
@@ -108,18 +111,18 @@ class Fusion:
         #     Use GPS directly
         #     Find a approximate yaw
         #     etc.
-        gps_approx_yaw = atan2[gps_y - self.last_gps_y, gps_x - self.last_gps_x]
+        gps_approx_yaw = atan2(gps_y - self.last_gps_y, gps_x - self.last_gps_x)
         measurement = [gps_x,gps_y,gps_approx_yaw]
         
-        if not self.initial:
-            self.initial = ExtendedKalmanFilter(gps_x, gps_y)
-            self.initial = True
-        else:
-            # Update error covriance
-            self.EKF.Q = [[gps_covariance[0,0],0,0]
-                          [0,gps_covariance[1,1],0]
-                          [0,0,gps_covariance[2,2]]]
-            self.EKF.update(z = measurement)
+        # if not self.initial:
+        #     self.initial = True
+        #     self.initial = np.array([0,0,0])
+        # else:
+        # Update error covriance
+        # self.EKF.Q = [[gps_covariance[0,0],0,0],
+        #               [0,gps_covariance[1,1],0],
+        #               [0,0,gps_covariance[2,2]]]
+        self.EKF.update(z = measurement)
 
         self.last_gps_x = gps_x
         self.last_gps_y = gps_y

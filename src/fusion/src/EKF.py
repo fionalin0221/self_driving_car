@@ -8,7 +8,7 @@ class ExtendedKalmanFilter:
         #   only pose -> np.array([x, y, yaw])
         #   with velocity -> np.array([x, y, yaw, vx, vy, vyaw])
         #   etc...
-        self.pose = np.array([x, y, yaw])
+        self.pose = np.array([0, 0, 0])
         
         # Transition matrix
         self.A = np.identity(3)
@@ -24,14 +24,17 @@ class ExtendedKalmanFilter:
         self.R = np.identity(3) * 0.01
         
         # Measurement error
-        self.Q = np.identity(3) * 10
+        self.Q = np.identity(3) * 0.001
+        self.Q[2,2] = 2 
         print("Initialize Kalman Filter")
     
     def predict(self, u):
         # Base on the Kalman Filter design in Assignment 3
         # Implement a linear or nonlinear motion model for the control input
         # Calculate Jacobian matrix of the model as self.A
-        
+        self.B = np.array([[cos(self.pose[2]),-sin(self.pose[2]), 0],
+                           [sin(self.pose[2]), cos(self.pose[2]), 0],
+                           [                0,                 0, 1]])
         self.pose = (self.A).dot(self.pose)+(self.B).dot(u)
         self.S = ((self.A).dot(self.S)).dot(np.transpose(self.A)) + self.R
 
