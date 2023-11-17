@@ -7,7 +7,7 @@ from sensor_msgs.msg import CompressedImage, PointCloud2
 import sensor_msgs.point_cloud2 as pcl2
 from cv_bridge import CvBridge
 
-output_root = '/Your/Data/Path/'
+output_root = '/root/catkin_ws/sdc_hw5/data/'
 output_root_lidar  = output_root + 'lidar/'
 output_root_camera = output_root + 'camera/'
 

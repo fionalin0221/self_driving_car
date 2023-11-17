@@ -1,6 +1,7 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import cv2
 
 def click_points_2D(image):
   
@@ -119,3 +120,51 @@ def click_points_3D(points):
   print()
   return np.array(corners)
 
+def main():
+  # img_2D = cv2.imread('/root/catkin_ws/sdc_hw5/data/camera/1518069838279552217.jpg')
+  # click_points_2D(img_2D)
+  # img_3D = cv2.imread('/root/catkin_ws/sdc_hw5/data/lidar/1518069838220356412.npy')
+  # click_points_3D(img_3D)
+
+  array_2d = np.array([[457.344,387.690],
+                       [615.138,384.741],
+                       [616.612,502.085],
+                       [455.659,523.901]])
+  array_3d = np.array([[-0.983,0.835,-0.469],
+                       [-0.859,1.096,-0.471],
+                       [-0.864,1.109,-0.706],
+                       [-0.975,0.835,-0.469]])
+
+  fx = 698.939
+  fy = 698.939
+  cx = 128.0/2
+  cy = 720.0/2
+  intr_mx = np.array([[fx,0.0,cx],[0.0,fy,cy],[0.0,0.0,1.0]])
+  distCoe = np.array([0.0,0.0,0.0,0.0,0.0])
+
+  retval,rvec,tvec = cv2.solvePnP(array_3d, array_2d, intr_mx, distCoe, 0, flags=1)
+  R_mx,_ = cv2.Rodrigues(rvec)
+  print(R_mx)
+  print(tvec)
+  # print(tvec.shape)
+  trans_mx = np.array([[R_mx[0,0],R_mx[0,1],R_mx[0,2],tvec[0,0]],
+                       [R_mx[1,0],R_mx[1,1],R_mx[1,2],tvec[1,0]],
+                       [R_mx[2,0],R_mx[2,1],R_mx[2,2],tvec[2,0]],
+                       [0,0,0,1]])
+  print(trans_mx)
+  inverse_trans_mx = np.linalg.inv(trans_mx)
+  print(inverse_trans_mx)
+  # inv_R = np.linalg.inv(R_mx)
+  # inv_t = - inv_R @ tvec
+  # print(inv_R)
+  # print(inv_t)
+  camera_point = np.array([[0],[0],[0],[1]])
+  pw = inverse_trans_mx @ camera_point
+  # print(world_point)
+  world_point = np.array([[pw[0,0]/pw[2,0]],[pw[1,0]/pw[2,0]],[1]])
+  pixel_point = intr_mx @ world_point
+  print(pixel_point[0,0])
+  print(pixel_point[1,0])
+
+if __name__ == "__main__":
+  main()
